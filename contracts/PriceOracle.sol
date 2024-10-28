@@ -1,32 +1,54 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-contract PriceOracle {
-    address public immutable pair;
-    address public immutable token0;
-    address public immutable token1;
+contract ETHWETHOracle {
+    AggregatorV3Interface internal priceFeed;
 
-    constructor(address _pair) {
-        pair = _pair;
-        IUniswapV2Pair uniswapPair = IUniswapV2Pair(_pair);
-        token0 = uniswapPair.token0();
-        token1 = uniswapPair.token1();
+    event PriceUpdated(int256 price, uint256 timestamp);
+
+    error InvalidPriceFeed();
+
+    constructor(address _priceFeed) {
+        if (_priceFeed == address(0)) revert InvalidPriceFeed();
+        priceFeed = AggregatorV3Interface(_priceFeed);
     }
 
-    function getReserves() public view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast) {
-        return IUniswapV2Pair(pair).getReserves();
+    function getPriceFeed() external view returns (address) {
+        return address(priceFeed);
     }
 
-    function getPrice0() public view returns (uint256) {
-        (uint112 reserve0, uint112 reserve1,) = getReserves();
-        require(reserve0 > 0 && reserve1 > 0, "No liquidity");
-        return (uint256(reserve1) * 1e18) / uint256(reserve0);
+    function getLatestPrice() external returns (int256, uint256) {
+        (
+            uint80 roundId,
+            int256 price,
+            uint256 startedAt,
+            uint256 timestamp,
+            uint80 answeredInRound
+        ) = priceFeed.latestRoundData();
+
+        emit PriceUpdated(price, timestamp);
+        return (price, timestamp);
     }
 
-    function getPrice1() public view returns (uint256) {
-        (uint112 reserve0, uint112 reserve1,) = getReserves();
-        require(reserve0 > 0 && reserve1 > 0, "No liquidity");
-        return (uint256(reserve0) * 1e18) / uint256(reserve1);
+    function getLatestPriceView() external view returns (int256, uint256) {
+        (
+            uint80 roundId,
+            int256 price,
+            uint256 startedAt,
+            uint256 timestamp,
+            uint80 answeredInRound
+        ) = priceFeed.latestRoundData();
+
+        return (price, timestamp);
+    }
+
+    function getDecimals() external view returns (uint8) {
+        return priceFeed.decimals();
+    }
+
+    function getDescription() external view returns (string memory) {
+        return priceFeed.description();
     }
 }
