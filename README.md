@@ -16,4 +16,4 @@ https://sepolia.etherscan.io/address/0x51351b5603f031A27BA941c4339FC61CD4b8cf6D#
 Деплой и обмен eth на weth в scripts/deployAndInteract.ts
 Деплой оракла в deployOracle.ts
 Оракла верифицировал через npx hardhat verify --network sepolia 0x51351b5603f031A27BA941c4339FC61CD4b8cf6D "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9"
-Токен через 
+Токен через scripts/verify.ts
